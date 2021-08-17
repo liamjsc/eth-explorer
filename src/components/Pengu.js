@@ -597,11 +597,11 @@ function Pengu() {
   if (isLoading) return <div> loading </div>;
   return (
     <div>
-      {events.map(event => {
+      {events.map((event, index) => {
         console.log(event);
         return (
-          <div>
-            {event.asset.name} - {event.asset.price} - {assetMetadataMap && assetMetadataMap[event.asset.token_id].attributes.length}
+          <div key={index}>
+            {event.asset.name} - {event.asset.price} - {assetMetadataMap && assetMetadataMap[event.asset.token_id] && assetMetadataMap[event.asset.token_id].attributes.length}
           </div>
         );
       })}

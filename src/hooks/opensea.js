@@ -10,8 +10,6 @@ export function useGetOpenseaEvents(eventType = 'transfer', options) {
       .fetch(`https://api.opensea.io/api/v1/events?event_type=${eventType}&asset_contract_address=${asset_contract_address}&only_opensea=false&offset=0&limit=20`)
       .then(data => data.json())
       .then(e => {
-        console.log('setEvents');
-        console.log(e);
         setEvents(e?.asset_events || []);
         setLoading(false);
       })
@@ -19,27 +17,29 @@ export function useGetOpenseaEvents(eventType = 'transfer', options) {
         console.log(error);
         setLoading(false);
       });
-  });
+  }, []);
   return [loading, events];
 }
 
 export function useFetchMetadataMap(events, getMetadataUrl) {
-  console.log('fetching all metadata', events);
   const [metadataMap, setMetadataMap] = useState(null);
-  const tempMeta = {};
-  const promises = events.map(e => {
-      return new Promise.resolve();
-    // return window
-    //   .fetch(getMetadataUrl(e))
-    //   .then(data => data.json())
-    //   .then(data => {
-    //     tempMeta[e.asset.token_id] = data; // attributes[{trait_type, value}], description, image, name
-    //   });
-  });
-  Promise.all(promises).then(() => {
-    console.log('promises done');
-    setMetadataMap(tempMeta);
-  });
-
+  const metadataStore = {};
+  useEffect(() => {
+    const promises = events.map(e => {
+      const url = getMetadataUrl(e);
+      console.log('url', url);
+      return window
+        .fetch(url)
+        .then(data => data.json())
+        .then(data => {
+          console.log('setting tempData', data);
+          metadataStore[e.asset.token_id] = data; // attributes[{trait_type, value}], description, image, name
+        })
+        .catch(error => console.log('promise error', error));
+    });
+    Promise.all(promises).then(() => {
+      setMetadataMap(metadataStore);
+    });
+  }, [events]);
   return metadataMap;
 }
