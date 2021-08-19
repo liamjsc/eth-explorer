@@ -4,7 +4,7 @@ import logo from './logo.svg';
 import './App.css';
 import MeebitTransfers from './components/MeebitTransfers';
 import AlertsSetup from './components/AlertsSetup';
-import Pengu from './components/Pengu';
+import RecentSalesContainer from './components/RecentSalesContainer';
 import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
 import { OpenSeaPort, Network } from 'opensea-js';
 
@@ -53,16 +53,16 @@ function App() {
   const [isWeb3Loaded, provider] = useWeb3();
 
   console.log('useSEaport', provider);
-  const seaport = useSeaport(isWeb3Loaded, provider.currentProvider);
+  // const seaport = useSeaport(isWeb3Loaded, provider.currentProvider);
   if (!isWeb3Loaded) return <LoadingApp />;
   return (
     <div className="App">
       <Router>
         <Switch>
-          <Route path="/pengu">
-            <Pengu seaport={seaport}/>
-          </Route>
           <Route path="/">
+            <RecentSalesContainer/>
+          </Route>
+          <Route path="/meebits">
             <AlertsSetup />
             <MeebitTransfers />
           </Route>

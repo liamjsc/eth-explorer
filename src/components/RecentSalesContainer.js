@@ -6,10 +6,11 @@ import { opensea as abi, meebits as mbAbi } from '../abi/opensea.js';
 import { useContract, useGetPastEvents } from '../hooks/contract';
 import { useGetOpenseaEvents, useFetchMetadataMap } from '../hooks/opensea';
 import numeral from 'numeral';
-import { Chart } from 'react-google-charts';
+import { XYPlot, XAxis, YAxis, HorizontalGridLines, LineSeries, MarkSeries } from 'react-vis';
 
 const penguinAddress = '0xbd3531da5cf5857e7cfaa92426877b022e612cf8';
 const openseaAddress = '0x7be8076f4ea4a4ad08075c2508e481d6c946d12b';
+const bganAddress = '0x31385d3520bced94f77aae104b406994d8f2168c';
 const mbAddress = '0x7bd29408f11d2bfc23c34f18275bbf23bb716bc7';
 
 function findTokenMetadataUrl(event) {
@@ -28,10 +29,12 @@ function formatPrice(event) {
 // set up listener for new events
 // push those to state
 // render the state
-function Pengu() {
+function RecentSalesContainer() {
   const [input, setInput] = useState('0xbd3531da5cf5857e7cfaa92426877b022e612cf8');
   const [currentAddress, setCurrentAddress] = useState('0xbd3531da5cf5857e7cfaa92426877b022e612cf8');
   const [isLoading, events] = useGetOpenseaEvents('successful', { assetContractAddress: currentAddress });
+  const [onDisplay, setOnDisplay] = useState(null);
+
   function submit() {
     setCurrentAddress(input);
     setInput('');
@@ -43,50 +46,65 @@ function Pengu() {
 
   if (!events.map) console.log('error in events.map', events);
   if (isLoading) return <div> loading </div>;
-  const chartData = [
-    ['Time', 'Price'],
-    ...events.map((e, index) => {
-      const price = parseFloat(formatPrice(e));
-      return [index, price];
-    }),
-  ];
+  const chartData = events.map((e, index) => {
+    const price = parseFloat(formatPrice(e));
+    return {
+      x: parseInt(e.transaction.block_number),
+      y: price,
+      ...e,
+    };
+  });
 
   return (
     <Wrapper>
-      <Title>Pudgy Penguins</Title>
+      {/* <Title>Pudgy Penguins</Title> */}
       <InputArea>
         <input value={input} onChange={e => setInput(e.target.value)} />
         <button onClick={submit}>Search</button>
+        <div>
+          <button onClick={() => setCurrentAddress(mbAddress)}>Meebits</button>
+          <button onClick={() => setCurrentAddress(penguinAddress)}>Pudgy Penguins</button>
+          <button onClick={() => setCurrentAddress(bganAddress)}>BGAN Punks</button>
+        </div>
       </InputArea>
+
       <div style={{ display: 'flex' }}>
         <RecentSales events={events} idMap={assetMetadataMap} />
-
-        <div style={{ display: 'flex', maxWidth: 900, paddingLeft: '3rem' }}>
-          <Chart
-            width={500}
-            height={600}
-            chartType="ScatterChart"
-            loader={<div>Loading Chart</div>}
-            data={chartData}
-            options={{
-              title: 'Price over time',
-              chartArea: { width: '90%' },
-              hAxis: {
-                title: '',
-                minValue: 0,
-              },
-              vAxis: {
-                title: 'Price (ETH)',
-              },
-            }}
-            legendToggle
-          />
+        <div style={{ display: 'flex', maxWidth: 900, paddingLeft: '3rem', flexDirection: 'column' }}>
+          <XYPlot width={900} height={300}>
+            <HorizontalGridLines />
+            <MarkSeries
+              data={chartData}
+              onNearestX={value => {
+                if (onDisplay?.id !== value.id) {
+                  setOnDisplay(value);
+                }
+              }}
+            />
+            <XAxis />
+            <YAxis />
+          </XYPlot>
+          {onDisplay && (
+            <OnDisplay>
+              <ListItem>
+                <img src={onDisplay.asset.image_thumbnail_url} />
+                <ListItemData>
+                  <a href={onDisplay.asset.permalink} target="_blank" rel="noopener noreferrer">
+                    {onDisplay.asset.name}
+                  </a>
+                  <div>{onDisplay.y} ETH</div>
+                </ListItemData>
+              </ListItem>{' '}
+            </OnDisplay>
+          )}
         </div>
         <CountAtPrice />
       </div>
     </Wrapper>
   );
 }
+
+const OnDisplay = styled.div``;
 
 const Wrapper = styled.div`
   display: flex;
@@ -101,5 +119,16 @@ const Title = styled.div`
 const InputArea = styled.div`
   width: 25%;
 `;
-
-export default Pengu;
+const ListItem = styled.div`
+  padding: 0.2rem;
+  height: 7rem;
+  width: 10value.rem;
+  display: flex;
+`;
+const ListItemData = styled.div`
+  padding: 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+`;
+export default RecentSalesContainer;
