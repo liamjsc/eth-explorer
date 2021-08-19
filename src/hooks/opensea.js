@@ -17,7 +17,7 @@ export function useGetOpenseaEvents(eventType = 'transfer', options) {
         console.log(error);
         setLoading(false);
       });
-  }, []);
+  }, [asset_contract_address, eventType]);
   return [loading, events];
 }
 

@@ -29,7 +29,15 @@ function formatPrice(event) {
 // push those to state
 // render the state
 function Pengu() {
-  const [isLoading, events] = useGetOpenseaEvents('successful', { assetContractAddress: penguinAddress });
+  const [input, setInput] = useState('0xbd3531da5cf5857e7cfaa92426877b022e612cf8');
+  const [currentAddress, setCurrentAddress] = useState('0xbd3531da5cf5857e7cfaa92426877b022e612cf8');
+  const [isLoading, events] = useGetOpenseaEvents('successful', { assetContractAddress: currentAddress });
+  function submit() {
+    setCurrentAddress(input);
+    setInput('');
+  }
+
+  useEffect(() => {}, [currentAddress]);
   console.log(isLoading, events, '--isloading');
   const assetMetadataMap = useFetchMetadataMap(events, findTokenMetadataUrl);
 
@@ -46,6 +54,10 @@ function Pengu() {
   return (
     <Wrapper>
       <Title>Pudgy Penguins</Title>
+      <InputArea>
+        <input value={input} onChange={e => setInput(e.target.value)} />
+        <button onClick={submit}>Search</button>
+      </InputArea>
       <div style={{ display: 'flex' }}>
         <RecentSales events={events} idMap={assetMetadataMap} />
 
@@ -84,6 +96,10 @@ const Wrapper = styled.div`
 const Title = styled.div`
   font-wieght: bold;
   font-size: 18px;
+`;
+
+const InputArea = styled.div`
+  width: 25%;
 `;
 
 export default Pengu;
