@@ -1,15 +1,14 @@
 import { useState, useEffect } from 'react';
+import { EventType } from 'opensea-js';
 import styled from 'styled-components';
 import CountAtPrice from './CountAtPrice';
 import RecentSales from './RecentSales';
-import { opensea as abi, meebits as mbAbi } from '../abi/opensea.js';
-import { useContract, useGetPastEvents } from '../hooks/contract';
 import { useGetOpenseaEvents, useFetchMetadataMap } from '../hooks/opensea';
 import numeral from 'numeral';
-import { XYPlot, XAxis, YAxis, HorizontalGridLines, LineSeries, MarkSeries } from 'react-vis';
+import { XYPlot, XAxis, YAxis, HorizontalGridLines, MarkSeries } from 'react-vis';
+import opensea from '../abi/opensea';
 
 const penguinAddress = '0xbd3531da5cf5857e7cfaa92426877b022e612cf8';
-const openseaAddress = '0x7be8076f4ea4a4ad08075c2508e481d6c946d12b';
 const bganAddress = '0x31385d3520bced94f77aae104b406994d8f2168c';
 const mbAddress = '0x7bd29408f11d2bfc23c34f18275bbf23bb716bc7';
 
@@ -29,7 +28,7 @@ function formatPrice(event) {
 // set up listener for new events
 // push those to state
 // render the state
-function RecentSalesContainer() {
+function RecentSalesContainer({ seaportLoaded, seaport }) {
   const [input, setInput] = useState('0xbd3531da5cf5857e7cfaa92426877b022e612cf8');
   const [currentAddress, setCurrentAddress] = useState('0xbd3531da5cf5857e7cfaa92426877b022e612cf8');
   const [isLoading, events] = useGetOpenseaEvents('successful', { assetContractAddress: currentAddress });
@@ -40,11 +39,23 @@ function RecentSalesContainer() {
     setInput('');
   }
 
-  useEffect(() => {}, [currentAddress]);
-  console.log(isLoading, events, '--isloading');
+  console.log(EventType);
+  // add listener on new events for the currentAddress
+  useEffect(() => {
+    console.log('use add listener', seaportLoaded)
+    if (!seaportLoaded) return;
+    seaport.addListener(EventType.MatchOrders, data => {
+      console.info({ data });
+    });
+    return function(){
+      seaport.removeAllListeners(EventType.MatchOrders)
+    };
+    // MatchOrders
+    // PurchaseAssets
+  }, [seaportLoaded]);
+
   const assetMetadataMap = useFetchMetadataMap(events, findTokenMetadataUrl);
 
-  if (!events.map) console.log('error in events.map', events);
   if (isLoading) return <div> loading </div>;
   const chartData = events.map((e, index) => {
     const price = parseFloat(formatPrice(e));

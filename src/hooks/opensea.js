@@ -1,13 +1,20 @@
 import { useState, useEffect } from 'react';
-
+import qs from 'qs';
 export function useGetOpenseaEvents(eventType = 'transfer', options) {
   const { assetContractAddress: asset_contract_address } = options;
 
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const params = {
+    event_type: eventType,
+    asset_contract_address,
+    only_opensea: false,
+    limit: 40,
+  };
+  
   useEffect(() => {
     window
-      .fetch(`https://api.opensea.io/api/v1/events?event_type=${eventType}&asset_contract_address=${asset_contract_address}&only_opensea=false&offset=0&limit=20`)
+      .fetch(`https://api.opensea.io/api/v1/events?${qs.stringify(params)}`)
       .then(data => data.json())
       .then(e => {
         setEvents(e?.asset_events || []);
