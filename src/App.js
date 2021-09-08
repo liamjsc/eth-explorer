@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import './App.css';
 import MeebitTransfers from './components/MeebitTransfers';
 import AlertsSetup from './components/AlertsSetup';
+import Dots from './components/Dots';
 import RecentSalesContainer from './components/RecentSalesContainer';
 import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
 import { OpenSeaPort, Network } from 'opensea-js';
@@ -31,13 +32,17 @@ function App() {
     <div className="App">
       <Router>
         <Switch>
-          <Route path="/">
+          <Route path="/recents">
             <RecentSalesContainer seaport={seaport} seaportLoaded={seaportLoaded}/>
           </Route>
           <Route path="/meebits">
             <AlertsSetup />
             <MeebitTransfers />
           </Route>
+          <Route path="/dot">
+            <Dots />
+          </Route>
+
         </Switch>
       </Router>
     </div>
